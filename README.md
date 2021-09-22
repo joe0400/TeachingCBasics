@@ -434,6 +434,163 @@ To declare a variable of that struct type we can do such `struct Person me;` To 
 ##### PART 8 Questions
 Declare and define a struct that contains fields for info needed for a bank account. 
 #### PART 9 MEMORY ALLOCATION
+**Allocation** is when the operating system reserves memory for use within the program. Memory allocation is necessary for a program that can vary based off of data and lengths of said data. Allocated memory needs to be **free'd** when finished being used. Allocated memory that is not free'd results in a **memory leak**. A memory leak causes system memory allocated to not be free'd and returned to the os for other programs to use. This leads to poor performance and possible crashing. \
+To allocate and free memory it is import to use a preprocessor include to include **stdlib.h** also known as the **Standard Library**. Inside `stdlib.h`multiple functions are defined. `malloc(size_t)` returns a pointer if it is able to allocate a memory region of size `size_t`. If it fails to allocate memory it returns `NULL`. Trying to access memory at `NULL` will lead to a crash. To get the size of a data type the `sizeof(type)`will return the size_t of the datatype. This includes user defined types such as `struct`'s. You can multiply `sizeof(type)`by n to to get the size of a array of n elements of type. To free allocated memory, the `free(pointer)`function will free the memory region associated with the pointer. Free does not modify the value of the pointer however, so be wary of **dangling pointers**. Dangling pointers are pointers that point to an inaccessable region of memory. Best practice when freeing is to pass a **destructor** a pointer to the pointer. This way you can `free` the dereference of the pointer, and then assign null to the dereference of the pointer. For example:
+
+    typedef void* object;
+	
+	object destroy(object* obj){
+		free(*obj);
+		return *obj = NULL;
+	}
+This removes the chances of trying to access a dangling pointer. \
+Tools such as **Valgrind** are available to debug for memory leaks and dangling pointers. To run Valgrind, you must install it on your Ubuntu virtual machine. To install `valgrind` you must run the command `sudo apt-get install valgrind` , enter the root pasword you had setup, and accept by typing `y`. To use Valgrind,  you enter `valgrind ./executable_name` into your terminal. It will let you know if you had any `malloc`'s and if you missed any `free`'s.
+#### PART 10 OBJECT ORIENTED MODEL
+Part 9 described a method for dynamically allocating memory for data/data types. Part 8 described structs, a user defined data type that has member fields. These two methods allow us to define **objects** which allow us to abstract away implementation from the program / users. This is useful because it makes the code more human readable and easier to understand, whilst allowing us to hide the implementation. This allows us to make it into a **black box**.  Using a `typedef object_name void*;` allows us to expose zero implementation of the fields. This uses the fact that any pointer can be cast to `void*` and back. The **Object Oriented Model** describes objects that have **fields** which contain data and state for that object, and **methods** which act upon instances of the object. All objects have a **constructor**, **destructor**, and **methods**. Constructors allocate the memory needed for the object to be instantiated. Destructors safely delete the memory of the fields than the memory of the object. \
+Lets say we wanted to make a `Color` object. This `Color` object should be able to contain individual red, green, and blue values. It should also be able to access its red, green, and blue values. These methods are called **Accessors** or **Getters**. It should also be able to modify these values. These methods are called **Mutators** or **Setters**. Then we should be able to calculate the HSV, and return it in a external object called `HSV_Color` using its `__init__HSV_Color(double hue, double saturation, double value);` \
+First lets start with the fields, which would be under a structure, then we will declare the methods, constructor, and destructor.
+
+    typedef struct{
+	    int r;
+	    int g;
+	    int b;
+	} color;
+	typedef void* Color;
+	
+	Color __init__Color(int r, int g, int b);
+	int Color_get_r(Color self);
+	int Color_get_g(Color self);
+	int Color_get_b(Color self);
+	void Color_set_r(Color self, int r);
+	void Color_set_g(Color self, int g);
+	void Color_set_b(Color self, int b);
+	HSV_Color Color_get_HSV_Color(Color self);
+	Color __del__Color(Color* self);
+
+We have just defined the **API** or **Application Programming Interface** for this library. Now lets define the implementation of the constructor.
+
+    Color __init__Color(int r, int g, int b){
+	    color* ret = (color*)malloc(sizeof(color));
+	    if(ret == NULL)
+		    return NULL;
+		ret->r = r;
+		ret->g = g;
+		ret->b = b;
+		return (Color)ret;
+	}
+The constructors whole point is to return a object that has been allocated with all the values correctly assigned.\
+A destructor call on this object is relatively simple, below we will implement the destructor for the object.
+
+    Color __del__Color(Color* self){
+	    if(self == NULL || *self == NULL)
+		    return NULL;
+		free(*self)
+		return *self = NULL;
+	}
+The destructor frees the allocated memory, making sure the pointer handed is a valid pointer. It also assigns the pointer to `NULL` making sure that no hanging pointers are left. It also returns `NULL` so that if someone trys to assign using the destructor it returns `NULL` so no hanging pointers are left.\
+Getters / accessors are all quite similar. Below I have provided one getter / accessor method.
+
+    int Color_get_r(Color self){
+	    if(self == NULL){
+		    return -1;
+		}
+		return ((color*)(self))->r;
+	}	
+The function checks to see if self is a valid pointer before trying to access values related to the pointer. It then casts the `void*` to a `color*` to access a field in it. Mutators / Setters are similar to this. Below see a Mutator / Setter.
+
+     void Color_set_r(Color self, int r){
+	    if(self == NULL){
+		    return;
+		}
+		((color*)(self))->r = r;
+	}
+Again checking to see if a pointer is valid is important
+
+##### PART 10 Questions
+Create an API for calculating the interest on a bank account with the object `Customer` containing fields for `customer_id`,`customer_age`,`account_age`,`interest_rate` and any others you think of. Use valgrind to debug for any memory leaks.
+#### PART 11 HEADERS AND PREPROCESSOR
+**Header files** are a vital part to developing an API. Header files allow you to only expose parts of the API and hide the implmentation in a **Compiled Object File**. Compiled Object Files have the extension `.o`. To make a header file you must save as a `.h` to save the C code as a C header. To then make the **implementation** you create a `.c` file with all the definitions for the functions inside it. At the top include a preprocessor include as such `#include "header_file_name.h"`.\
+The header file should only include declarations of functions. Its important as well to include at the top of the header file a **header gaurd**. This prevents the header from being imported twice and introducing conflicting declarations. See below for a example of a header gaurd.
+
+    #ifndef HEADER_NAME_H
+    #define HEADER_NAME_H
+    #endif //HEADER_NAME_H
+    
+   To then compile your library you will want to use `gcc -c library.c -o library.o`. This compiles your implementation to a object file. You then can include the header in your main program, or your **driver** by using a preprocessor include. That include must be using quotations just like before. To then compile that driver to include the library, we can use `gcc driver.c library.o -o program` to compile and link. **Linking** is the action of taking compiled object files and translating them into the driver program so that the program can use the functions. \
+   **Preprocessor Macros** are a fundamental feature of the C language. Preprocessor Macros allow you to concatenate arguments with the text, or use specific text if and only if a defined symbol exists using a **#define** tag. **Concatenation** is the act of combining two text elements together. To make a preprocessor text replacement macro, we can do such. Lets say we wanted to make it so that a variable name changes on the input of a macro.
+   Below is how it is done
+   
+
+    #define custom_variable_name(Type, Name)\
+	    Type variable_##Name;
+	custom_variable_name(int, yello)
+The ## characters indicate concatenation of two strings. In this case its between argument `Name` and text `variable_`. The call to the macro means that it will create a variable of type `int` with name `variable_yello`.
+##### PART 11 Questions
+Take the assignment from last time and split it up into a driver, c implementation file, and a header file. Recompile the code using the method provided above.
+#### PART 12 GENERICS
+**Generics** are a way of defining the objects with data types that are not necessary to the implementation, only to the user. This means we can make a object with fields of type `int` and one of fields type `double`. It also means we can make functions that are not object functions where the data types only matter to the user. This is done with Preprocessor macros. We can use text replacement to implement a way of making a generic templated function. See below
+
+    #define MakeAdd(Type)\
+	    Type add_##Type(Type a, Type b){\
+		    return a + b;\
+		}
+	MakeAdd(int)
+	MakeAdd(double)
+This allows us to make a generic function where it covers many implementations without having to repeat ourselves. If we need a set of objects that use `int` but vary by nothing but type compared to `double`, this is a good way of dealing with that.
+#### PART 13 DATA STRUCTURES
+Knowing what we know now we can implement different forms of data structures. **Data structures** are the ways we organize our data. Arrays are a data structure. However from this point on we are going to investigate different kinds of data structures and their adavantages. There are `LinkedLists`, `ArrayList`,`Tree`,`HashMap`,`Queue`,`Stack` and others. We are only going to investigate these ones here however. We will be using **Big O Notation**. Big O notation describes the asymptiotic upper bound of the time taken to run something. It is written as `O(time_taken)` and is expressed refering to the length of something.
+##### PART 13.1 LinkedList
+**Linked Lists** are  way of storing data where the data only knows of what is ahead of it, and possibly what is before it. This is done by pointing to the adjacent `Node`'s. Below would be a memory map of what happens.
+
+    Memory Map
+         [ Node    ] Node    ] Node    ] Node    ] Node    ]head|
+    Addr |  0 |  1 |  2 |  3 |  4 |  5 |  6 |  7 |  8 |  9 | 10 | 
+    Value| 10 |  6 |  3 |  8 |  9 |  2 | 12 |NULL| 15 |  0 |  4 |
+	
+	node structure:
+	
+    struct Node{
+	    int value;
+	    struct Node* next;
+	};
+If you notice here the `head` variable points to a `Node` which contains a pointer to a next `Node`, so on and so forth. This allows you to add elements to the list as your working on it and remove elements dynamically.
+To delete the linked list you have to go to the tail and delete it and work your way back. To add a element you simply create a new node and go to the tail of the linked list and point the tail to the new element.  The main issue of Linked List is the time to access an abitrary element. Its `O(n)` which is linear. Compare that with ArrayList access time being `O(1)`.
+##### PART 13.2 ArrayList
+**ArrayList** is a dynamically sizing array, allowing a person to access any element with ease and add or remove elements. It does this by reallocating after its **capacity** matches its **size**. It then procedes to double its allocation so that its capacity doubles. The size of a arraylist is how many elements are currently being stored. the capacity is how many it could store before a re-alloction. The main issue with ArrayList compared to LinkedList is the amount of time it takes to remove or add elements in the middle or begining. Its `O(n)`. Compared to the LinkedList where its `O(1)`.
+##### PART 13.3 Tree
+**Trees** are similar to linked lists but where each node points to two or more nodes. This allows us to store data in hierarchies. The main advantage to a tree is the insert time for a sorted tree is lower than both `ArrayList` and `LinkedList`. At `O(lg(n))`it is much lower. The disadvantage is when a tree becomes lopsided it takes a longer time to insert and requires more time to search.
+##### PART 13.4 HashMap
+**HashMap** is a form of a relational link between an **element** and a **key**. This allows us to have associativity between the key and element. This is done by relating the hash of the key to the elements index. This allows us to retrieve elements by key that is not a incremental integer at `O(1)`. However it also has the possibility of hash collisions where two keys hashes line up at the capacity it has and needs to resolve it. There are multiple ways of resolving such conundrum. One way is by having a linked list, another is to rehas the hash. All ways end up with larger memory implementations.
+##### PART 13.5 Queue
+**Queue** is a data structure where a **FIFO** or **First In First Out** policy is implemented. This means that elements inserted first come out before later inserted elements. This is similar to the way queues work at restaraunts or stores. Under the hood, `Queue` is implemented in a similar way to `LinkedList`. The difference is you have a bi-directional linked list, and keep the head and tail. when you insert a element, you add them to the head. when you remove a element you remove from the tail. This way the `Queue` continues down the elements. The main advantage is that this both preserves order and is usable in the case of sycnronization. For example, when processes comunincate under many OS's, they use a `Queue` to communicate between each other to maintain order and data saftey.
+The operations for adding to a `Queue` is called **enqueueing** and removeing from a `Queue` is called **dequeueing**,
+##### PART 13.6 Stack
+**Stack** is a data structure where a **FILO** or **First In Last Out** policy is implemented. This operations are called **popping** when removing, and **pushing** when adding to the `Stack`. Stacks due to their nature allow for saving recursive actions, as the recursive actions will propogate up, then back down. For example how many PC's save the recursive function calls is through a stack, where it saves the varaibles, the return address on the stack in something called a **Stack Frame**. Stacks are also implemented like a `LinkedList`. The head when `popping` deletes itself and gets the next node. When `pushing` the new node becomes the head and points to the previous head.
+##### PART 13 Questions
+Implement generic templates of each of these data structures in C using preprocessor directives. **NOTE**: Generic Objects must have implementation stored inside the header file.
+#### PART 14 FLOATING POINTS
+Floating points are structured in a way where there are three parts. Floating points contain a **Sign Bit**, a **Exponent**, and a **Mantissa**. The sign bit determines if its negative or positive. The Mantissa is the fractional part of the number, and the exponent is what its brought to.\
+To understand floating points better, Below is how the structure of a single precision floating point.
+
+    single precision float table
+    sign exponent Mantissa
+       1 01101111 00000000000000000000000
+    (-1)^sign * (Mantissa) * 2^(adjusted exponent)
+ We can follow these steps:
+ 
+
+ 1. If the exponent is all 1s, and the mantissa is empty its +/- infinity
+ 2. if the exponent is all 1s and the mantissa is not empty, then its NaN
+ 3. If the exponent contains a 1, we prepend the Mantissa with a 'floating' one
+ 4. If the exponent is empty then the adjusted exponent is `2^(exponent_size - 1) - 2`
+ 5. If the exponent is not empty then the adjusted exponent is `exponent - (2^(exponent_size - 1) -1)`
+ 6. Then you calculate! `(-1)^sign * Mantissa * 2^(adjusted exponent)`
+
+
+
+    
+    
+
 ### Adendum
 #### For Windows PC's:
 Head to [Oracle's Virtualbox download](https://www.virtualbox.org/wiki/Downloads) and select `Windows hosts`. Install the `VirtualBox-*.*.exe` and accept all driver installs. This will install device drivers for the virtual machine. It will ask to reboot, in which you should.
