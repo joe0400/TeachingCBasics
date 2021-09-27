@@ -1,3 +1,6 @@
+### Preface
+This article teaching the basics of computing is written by a senior in college. This senior, wanted to make it easier in any way possible for new people to get into computer science, and learn how to develop. This will expand as more and more info is added, and is not to be used as the only source of knowledge needed.
+
 ##### For CS Students,
 Computer Science is an extremely complicated but rewarding field. Some of the concepts when talking about computer hardware or computing philosophy, can be quite difficult for those with no background. Persevere through it, it is worth it.\
 In this teaching series we use the language C and C++ for most of it. I personally believe that due to the exposure to hardware that these languages allow, it makes the learner have a better understanding of how the hardware works.\
