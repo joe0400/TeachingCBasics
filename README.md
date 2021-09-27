@@ -505,6 +505,34 @@ The function checks to see if self is a valid pointer before trying to access va
 		((color*)(self))->r = r;
 	}
 Again checking to see if a pointer is valid is important
+##### PART 10.1 Inheritance
+**Inheritance** is when a object inherits the behavior of another objection. This means that you do not have to remake the function for said definition. This allows you to make more concies programs that allow for **polymorphic** functionality. This means that the program can have multiple types that work for the implementation. Generally this is done by containg the information within the inherited objects structure at the begging of the object. This information is called the **base type**. Because the data is at the beggining of the `struct` it means that the call to it will have all the superclass type info stored at thesame location as the inherited class itself. Due to this it inherits all the functions of the inherited class.
+Inheritance can be showed by drawing a tree from the base class to each inherting class. A good example of inheritance is often found in graphics librarys. 
+
+    surface
+    | window
+    Box
+    | Button
+    | | CheckBox
+    | | RadioButton
+    | TextBox
+    | Rectangle
+    Renderable
+    | Button
+    | | CheckBox
+    | | RadioButton
+    | TextBox
+    | Rectangle
+    Action
+    | Button
+    | | CheckBox
+    | | RadioButton
+    | Field
+    | | TextBox
+    
+Above is a fictional inheritance tree. As you can see inheritance allows you to compose the functionality of objects in relation to each other.
+##### PART 10.2 Interfaces
+**Interfaces** allow for a programmer to define the api for a programs object without implementing the object, as each object that inherits such interface will have a different implementation. This can be done in a simple way. By attaching to the object a structure that contains those functions as **funciton pointers**. Function pointers provide the reference to a function so that the user can call the function within the program. How function pointers work is such `type (*function_name)(parameter_types) = function;` This allows you to define the functions and can call it directly from the object itself. In this case the object containg the function call should have the `self` or `this` value parameter type show said implementation through the `struct`. And the `struct` should be visable to the user.
 
 ##### PART 10 Questions
 Create an API for calculating the interest on a bank account with the object `Customer` containing fields for `customer_id`,`customer_age`,`account_age`,`interest_rate` and any others you think of. Use valgrind to debug for any memory leaks.
