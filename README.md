@@ -587,10 +587,54 @@ To understand floating points better, Below is how the structure of a single pre
  6. Then you calculate! `(-1)^sign * Mantissa * 2^(adjusted exponent)`
 
 
+#### PART 15 MAKEFILE
+**Make** is a powerful tool that allows you to automate building of large projects. The files that create these projects are called **Makefiles**. Makefiles allow you to define terminal sequences based off of dependencys and can resolve linking order. These defined sequences are called **Make recipes**. A simple makeifle is named ``Makefile`` and can run the recipe from the top by calling ``Make`` in the terminal. These make recipes can also be called individually by placing the recipe name after the `Make` command. \
+To make a `Makefile` and add recipes a simple template is below.
 
+    all: main.c linked_file_names.o
+        gcc main.c linked_file_names.o -o program_name
+    linked_file_names.o: obect_file.cpp
+        gcc object_file.cpp -c -o linked_file_names.o
+    clean:
+        rm -rf ./*.o
+The recipes are denoted by putting the name of the recipe followed by a colon (:). Everything following the colon is called a **dependency**. Dependencys can be resolved by the same named make recipe. If the file is available, then it wont call the make recipe, making the compilation and linking simpler. This also means that it will only recompile files that are changed. Makefiles also have other features. One of them is allowing you to hae variables, in which you can change to change all compilation settings. For example **compile flags** are often added to a makefile so that you can change how the program is compiled quickly and easily. Another example is also the compiler. If someone wanted to change the compiler, with a variable, simply changing the variables value will change the compiler used in all locations. To use variables simply create a variable name at the top of the file and assign the variable a value. Then where used simple type `$(variable_name_here)` and the variable gets inserted as text at that location. An example is provided below
     
-    
+    compiler = gcc
+    flags = -O2 -werror -Wall -pedantic -Wfatal-errors
+    all: main.c linked_file_names.o
+        $(compiler) $(flags) main.c linked_file_names.o -o program_name
+    linked_file_names.o: obect_file.cpp
+        $(compiler) $(flags) object_file.cpp -c -o linked_file_names.o
+    clean:
+        rm -rf ./*.o
+Because of this ability it makes it incredibly powerful. However it can be even more powerful. Lets say you have a directory tree. This directory tree looks like this
 
+    Program
+    | main.c
+    --- Library
+         | library.c
+         | library_others.c
+         | Makefile
+    | Makefile
+Makefiles can be then used to recursively call itself down the directory tree. This also allows you to use something called **wildcards**. Wildcards allow you to match for a matching file name and simplify your Makefile. `Make` wildcards are denoted as a `%` folloing or precedeing the rest of the expression. An example expression would be as such:
+
+    compiler = gcc
+    flags = -O2 -werror -Wall -pedantic -Wfatal-errors
+    %.o: %.c
+        $(compiler) $(flags) %.c -c -o %.o
+    clean:
+        rm -rf *.o
+
+Because of all of this, it allows you to compile all the files in the program without having to define every single make recipe for every file. And to call the directorys `Makefile` from inside the main build directory, you can simply call Make on it.
+
+    compiler = gcc
+    flags = -O2 -werror -Wall -pedantic -Wfatal-errors
+    main: main.c 
+        make -C library
+        $(compiler) $(flags) main.c ./library/*.o -o main
+This both allows you to simplify your compilation process, but also allwos you to make the compilation simpler so that each library can be quickly compiled. 
+##### PART 15 Questions
+1.) Convert your previous programs to use makefiles to compile. Recompile them using makefiles. 
 ### Adendum
 #### For Windows PC's:
 Head to [Oracle's Virtualbox download](https://www.virtualbox.org/wiki/Downloads) and select `Windows hosts`. Install the `VirtualBox-*.*.exe` and accept all driver installs. This will install device drivers for the virtual machine. It will ask to reboot, in which you should.
